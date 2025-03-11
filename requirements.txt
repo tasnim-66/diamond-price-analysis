@@ -1,8 +1,7 @@
 streamlit
-gspread
-oauth2client
 pandas
 numpy
-seaborn
 matplotlib
+seaborn
 scikit-learn
+st-gsheets-connection
