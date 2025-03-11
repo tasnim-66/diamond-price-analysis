@@ -6,23 +6,22 @@ import seaborn as sns
 import time
 import random
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import json
+from google.oauth2.service_account import Credentials
 from sklearn.preprocessing import LabelEncoder
 
-# Set Streamlit page config 
+# ✅ Set Streamlit page config 
 st.set_page_config(page_title="Diamond Price Analysis", layout="wide")
 
 # ✅ Google Sheets API Setup
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1_thakBki8I4SlzIHPM_pDm4jV0ZtLWL323-9GMl3J-w"
 
-# ✅ Define the scope and credentials
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-
-# ✅ Authenticate with Google Sheets
-client = gspread.authorize(credentials)
-
+# ✅ Load credentials from Streamlit Secrets
 try:
+    credentials_dict = st.secrets["google_service_account"]
+    credentials = Credentials.from_service_account_info(credentials_dict)
+    client = gspread.authorize(credentials)
+
     # ✅ Open Google Sheet and get data
     spreadsheet = client.open_by_url(SHEET_URL)
     sheet = spreadsheet.sheet1
@@ -134,6 +133,10 @@ try:
         - **Correlation Heatmap:**  
           The strongest correlation with price is seen with **carat size**, followed by dimensions (length, width, depth). Other factors like clarity, cut, and color have lower correlations.
         """)
+
+except KeyError:
+    st.error("🚨 **Secrets Not Configured:** Please add your Google Sheets credentials to Streamlit Secrets.")
+    st.write("🔹 **Fix:** Go to Streamlit Cloud → Manage App → Settings → Secrets and add your Google Service Account details.")
 
 except PermissionError:
     st.error("🚨 **Permission Denied:** The service account does not have access to this Google Sheet.")
