@@ -9,31 +9,23 @@ import gspread
 from google.oauth2.service_account import Credentials
 from sklearn.preprocessing import LabelEncoder
 
-# ✅ Set Streamlit page config 
 st.set_page_config(page_title="Diamond Price Analysis", layout="wide")
 
-# ✅ Google Sheets API Setup
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1_thakBki8I4SlzIHPM_pDm4jV0ZtLWL323-9GMl3J-w"
 
-# ✅ Load credentials from Streamlit Secrets
 try:
-    credentials_dict = dict(st.secrets["google_service_account"])  # ✅ FIXED HERE
+    credentials_dict = dict(st.secrets["google_service_account"])
     credentials = Credentials.from_service_account_info(credentials_dict)
     client = gspread.authorize(credentials)
 
-    # ✅ Open Google Sheet and get data
     spreadsheet = client.open_by_url(SHEET_URL)
     sheet = spreadsheet.sheet1
     data = sheet.get_all_records()
 
-    # ✅ Convert to DataFrame
     df = pd.DataFrame(data)
     df.columns = df.columns.str.strip()
-
-    # ✅ Drop any rows with missing values to prevent errors
     df = df.dropna()
 
-    # ✅ Convert categorical columns into numerical values
     categorical_cols = ['cut', 'color', 'clarity']
     label_encoders = {}
 
@@ -42,7 +34,6 @@ try:
         df[col] = le.fit_transform(df[col])
         label_encoders[col] = le
 
-    # ✅ Define label mappings for better readability
     factor_labels = {
         "carat": "Carat",
         "x": "Length (mm)",
@@ -55,17 +46,13 @@ try:
         "clarity": "Clarity"
     }
 
-    # ✅ Streamlit UI
     st.title("Diamond Price Analysis: A/B Testing")
 
-    # ✅ Display dataset preview
     st.write("### Preview of the Diamonds Dataset:")
     st.dataframe(df.head())
 
-    # ✅ Visualization Selection
     st.write("## What Factor Influences Diamond Price the Most?")
 
-    # ✅ Store session state for interaction
     if "start_time" not in st.session_state:
         st.session_state.start_time = None
     if "selected_chart" not in st.session_state:
@@ -75,23 +62,19 @@ try:
     if "show_conclusion" not in st.session_state:
         st.session_state.show_conclusion = False
 
-    # ✅ Function to randomly pick a chart
     def pick_random_chart():
         st.session_state.selected_chart = random.choice(["Correlation Heatmap", "Factor Importance Bar Chart"])
         st.session_state.start_time = time.time()
         st.session_state.show_answer_button = True
-        st.session_state.show_conclusion = False  # Reset conclusion visibility
+        st.session_state.show_conclusion = False
 
-    # ✅ Button to display a random chart
     if st.button("Show me a random visualization"):
         pick_random_chart()
 
-    # ✅ Display the randomly selected chart
     if st.session_state.selected_chart:
         st.write(f"### {st.session_state.selected_chart}")
 
         if st.session_state.selected_chart == "Correlation Heatmap":
-            # The correlation with price
             price_corr = df.corr()["price"].drop("price").sort_values(ascending=False)
 
             plt.figure(figsize=(8, 5))
@@ -104,8 +87,6 @@ try:
 
         elif st.session_state.selected_chart == "Factor Importance Bar Chart":
             correlation_values = df.corr()["price"].drop("price").sort_values(ascending=False)
-
-            # Rename factors using the dictionary above
             correlation_values.index = [factor_labels.get(col, col) for col in correlation_values.index]
 
             plt.figure(figsize=(8, 5))
@@ -115,14 +96,12 @@ try:
             plt.title("Which Factor Influences Price the Most?")
             st.pyplot(plt)
 
-    # ✅ Button to confirm that the user answered the question
     if st.session_state.show_answer_button:
         if st.button("I have the answer"):
             time_taken = time.time() - st.session_state.start_time
-            st.session_state.show_conclusion = True  # Show conclusion 
+            st.session_state.show_conclusion = True
             st.write(f"You took **{time_taken:.2f} seconds** to answer the question.")
 
-    # ✅ Conclusion Section (Only Appears After Clicking "I have the answer")
     if st.session_state.show_conclusion:
         st.write("## Conclusion:")
         st.write("""
@@ -134,12 +113,13 @@ try:
         """)
 
 except KeyError:
-    st.error("🚨 **Secrets Not Configured:** Please add your Google Sheets credentials to Streamlit Secrets.")
-    st.write("🔹 **Fix:** Go to Streamlit Cloud → Manage App → Settings → Secrets and add your Google Service Account details.")
+    st.error("Secrets Not Configured: Please add your Google Sheets credentials to Streamlit Secrets.")
+    st.write("Fix: Go to Streamlit Cloud → Manage App → Settings → Secrets and add your Google Service Account details.")
 
 except PermissionError:
-    st.error("🚨 **Permission Denied:** The service account does not have access to this Google Sheet.")
-    st.write("🔹 **Fix:** Ensure the service account email is added as an **Editor** in the Google Sheets sharing settings.")
+    st.error("Permission Denied: The service account does not have access to this Google Sheet.")
+    st.write("Fix: Ensure the service account email is added as an Editor in the Google Sheets sharing settings.")
 
 except Exception as e:
-    st.error(f"⚠️ An error occurred: {e}")
+    st.error(f"An error occurred: {e}")
+
