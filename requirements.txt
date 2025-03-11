@@ -5,10 +5,6 @@ seaborn
 matplotlib
 scikit-learn
 scipy
-gspread
-google-auth
-google-auth-oauthlib
-google-auth-httplib2
-oauth2client
+streamlit-gsheets
 typing-extensions
 rich
