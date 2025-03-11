@@ -8,4 +8,4 @@ scipy
 streamlit-gsheets-connection
 typing-extensions
 rich
-
+pip>=25.0.1
