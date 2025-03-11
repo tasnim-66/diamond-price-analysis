@@ -6,7 +6,6 @@ import seaborn as sns
 import time
 import random
 import gspread
-import json
 from google.oauth2.service_account import Credentials
 from sklearn.preprocessing import LabelEncoder
 
@@ -18,7 +17,7 @@ SHEET_URL = "https://docs.google.com/spreadsheets/d/1_thakBki8I4SlzIHPM_pDm4jV0Z
 
 # ✅ Load credentials from Streamlit Secrets
 try:
-    credentials_dict = json.loads(st.secrets["google_service_account"])  # FIXED
+    credentials_dict = dict(st.secrets["google_service_account"])  # ✅ FIXED HERE
     credentials = Credentials.from_service_account_info(credentials_dict)
     client = gspread.authorize(credentials)
 
