@@ -4,7 +4,4 @@ numpy
 seaborn
 matplotlib
 scikit-learn
-scipy
-typing-extensions
-rich
-streamlit-gsheets
+
