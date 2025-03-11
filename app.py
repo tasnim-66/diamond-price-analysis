@@ -6,18 +6,19 @@ import seaborn as sns
 import time
 import random
 import gspread
-from google.oauth2.service_account import Credentials
+from oauth2client.service_account import ServiceAccountCredentials
 from sklearn.preprocessing import LabelEncoder
 
 st.set_page_config(page_title="Diamond Price Analysis", layout="wide")
 
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1_thakBki8I4SlzIHPM_pDm4jV0ZtLWL323-9GMl3J-w"
 
-try:
-    credentials_dict = dict(st.secrets["google_service_account"])
-    credentials = Credentials.from_service_account_info(credentials_dict)
-    client = gspread.authorize(credentials)
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
 
+client = gspread.authorize(credentials)
+
+try:
     spreadsheet = client.open_by_url(SHEET_URL)
     sheet = spreadsheet.sheet1
     data = sheet.get_all_records()
@@ -111,10 +112,6 @@ try:
         - **Correlation Heatmap:**  
           The strongest correlation with price is seen with **carat size**, followed by dimensions (length, width, depth). Other factors like clarity, cut, and color have lower correlations.
         """)
-
-except KeyError:
-    st.error("Secrets Not Configured: Please add your Google Sheets credentials to Streamlit Secrets.")
-    st.write("Fix: Go to Streamlit Cloud → Manage App → Settings → Secrets and add your Google Service Account details.")
 
 except PermissionError:
     st.error("Permission Denied: The service account does not have access to this Google Sheet.")
